@@ -1,0 +1,347 @@
+<html>
+    <head>
+        <title>MineSweeper</title>  
+        <style type="text/css">
+            table
+              {
+              border-collapse:collapse;
+              margin:auto;
+              }
+            th
+              {
+              height:35px;
+              width:35px;
+              }
+            table, td, th
+              {
+              border:2px solid whitesmoke;
+              background-color: grey;
+              }
+        
+              
+            #header {
+                background-color:black;
+                color:white;
+                text-align:center;
+                margin:auto;
+                padding:5px;
+                width:50%;
+            }
+        </style> 
+    </head>
+
+    <script>
+    
+    var block = new String();
+    for(var i = 0 ; i < 100 ; i++){
+        block[i] = "0";
+    }
+
+
+    var mine = new Array();
+    for(var i = 0 ; ; i++){
+        if(mine.length < 10){
+            generateRandom(100, mine);
+        }else{
+            break;
+        }
+    }
+
+    for(var i = 0 ; i < 10 ; i++){
+    //   console.log(mine[i]);
+        block[mine[i]] ="!";
+    }
+
+    
+
+    for(var i = 0 ; i < 100 ; i++){
+        if(block[i] == "!" || block[i] == NaN){
+            switch(i % 10){
+                case 0 :
+                    if(block[i+1] !== "!"){
+                        block[i+1]++;
+                    }
+                    break;
+                case 9 :
+                    if(block[i-1] !== "!"){
+                        block[i-1]++;
+                    }
+                    break;
+                default :
+                    if(block[i+1] !== "!"){
+                        block[i+1]++;
+                    }
+                    if(block[i-1] !== "!"){
+                        block[i-1]++;
+                    }
+            }
+            
+            switch(i / 10){
+                case 0 :
+                    if(block[i+10] !== "!"){
+                        block[i+10]++;
+                    }
+                    break;
+                case 9 :
+                    if(block[i-10] !== "!"){
+                        block[i-10]++;
+                    }
+                    break;
+                default :
+                    if(block[i+10] !== "!"){
+                        block[i+10]++;
+                    }
+                    if(block[i-10] !== "!"){
+                        block[i-10]++;
+                    }
+            }
+            
+            if(i / 10 !== 0 && i % 10 !== 0){
+                if(block[i-11] !== "!"){
+                    block[i-11]++;
+                }
+            }
+
+            if(i / 10 !== 9 && i % 10 !== 0){
+                if(block[i+9] !== "!"){
+                    block[i+9]++;
+                }
+            }
+
+            if(i / 10 !== 0 && i % 10 !== 9){
+                if(block[i-9] !== "!"){
+                    block[i-9]++;
+                }
+            }
+
+            if(i / 10 !== 9 && i % 10 !== 9){
+                if(block[i+11] !== "!"){
+                    block[i+11]++;
+                }
+            }
+            
+        }
+    }
+
+    
+    //调试
+    //for(var i = 0 ; i < 100 ; i++){
+    //    console.log(block[i]);
+    //}
+
+    //插入随机数的函数
+    function generateRandom(count, array){
+        var rand = Math.floor(Math.random() * count);
+        for(var i = 0 ; i < array.length ; i++){
+            if(array[i] == rand){
+                return false;
+            }
+        }
+        array.push(rand);
+    }
+    //显示地雷的函数
+    function show(id, num, array){
+        document.getElementById(id).style.fontSize = "20";
+        if(event.altKey == 1){    
+            document.getElementById(id).innerHTML = "*";
+            document.getElementById(id).style.backgroundColor = "orange";
+        }else{
+            if(array[num] == "!"){
+                document.getElementById(id).innerHTML = array[num];
+                document.getElementById(id).style.backgroundColor = "red";
+                document.getElementById(id).style.fontSize = "22";
+                window.alert("BOOM!");
+            }else if (array[num] == 0) {
+                document.getElementById("b"+ num).style.backgroundColor = "white";
+                var safeZone = new Array();
+                var safeZoneBorder = new Array();
+                safeZone.push(num);
+                for(var i = 0 ; i < 100 ; i++){
+                    if(i < safeZone.length){
+                        for(var j = 0 ; j < 100 ; j++){
+                            if(array[j] == 0 && joined(j, safeZone[i]) && safeZone.indexOf(j) == -1){
+                                safeZone.push(j);
+                            }
+                        }
+                    }
+                }
+                for(var i = 0 ; i < safeZone.length ; i++){
+                
+                        for(var j = 0 ; j < 100 ; j++){
+                            if(joined(j, safeZone[i]) == true && safeZone.indexOf(j) == -1){
+                                safeZoneBorder.push(j);
+                            }
+                    
+                        }
+                }
+                for(var i = 0 ; i < safeZone.length ; i++){
+                    document.getElementById("b"+ safeZone[i]).style.backgroundColor = "white";
+                    document.getElementById("b"+ safeZone[i]).innerHTML = " ";
+
+                }
+            
+                for(var i = 0 ; i < safeZoneBorder.length ; i++){
+                    document.getElementById("b"+ safeZoneBorder[i]).style.backgroundColor = "greenyellow";
+                    document.getElementById("b"+ safeZoneBorder[i]).innerHTML = array[safeZoneBorder[i]];
+                    document.getElementById("b"+ safeZoneBorder[i]).style.fontSize = "20";
+                }
+            }else{
+                document.getElementById(id).innerHTML = array[num];
+                document.getElementById(id).style.backgroundColor = "greenyellow";
+            }
+        }
+    }
+
+        
+
+    function joined(a,b){
+        if(Math.abs((a%10)-(b%10)) < 2 && Math.abs(a-b) < 12){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+
+
+
+    </script>
+        <body>
+            <div id="header">
+                <h1>MineSweeper</h1>
+            </div>
+            <table>
+                <!--第一行-->
+                <tr>
+                    <th id="b0"; onmousedown="show('b0', 0, block)"></th>
+                    <th id="b1"; onmousedown="show('b1', 1, block)"></th>
+                    <th id="b2"; onmousedown="show('b2', 2, block)"></th>
+                    <th id="b3"; onmousedown="show('b3', 3, block)"></th>
+                    <th id="b4"; onmousedown="show('b4', 4, block)"></th>
+                    <th id="b5"; onmousedown="show('b5', 5, block)"></th>
+                    <th id="b6"; onmousedown="show('b6', 6, block)"></th>
+                    <th id="b7"; onmousedown="show('b7', 7, block)"></th>
+                    <th id="b8"; onmousedown="show('b8', 8, block)"></th>
+                    <th id="b9"; onmousedown="show('b9', 9, block)"></th>
+                </tr>
+                <!--第二行-->
+                <tr>
+                    <th id="b10"; onmousedown="show('b10', 10, block)"></th>
+                    <th id="b11"; onmousedown="show('b11', 11, block)"></th>
+                    <th id="b12"; onmousedown="show('b12', 12, block)"></th>
+                    <th id="b13"; onmousedown="show('b13', 13, block)"></th>
+                    <th id="b14"; onmousedown="show('b14', 14, block)"></th>
+                    <th id="b15"; onmousedown="show('b15', 15, block)"></th>
+                    <th id="b16"; onmousedown="show('b16', 16, block)"></th>
+                    <th id="b17"; onmousedown="show('b17', 17, block)"></th>
+                    <th id="b18"; onmousedown="show('b18', 18, block)"></th>
+                    <th id="b19"; onmousedown="show('b19', 19, block)"></th>
+                </tr>
+                <!--第三行-->
+                <tr>
+                    <th id="b20"; onmousedown="show('b20', 20, block)"></th>
+                    <th id="b21"; onmousedown="show('b21', 21, block)"></th>
+                    <th id="b22"; onmousedown="show('b22', 22, block)"></th>
+                    <th id="b23"; onmousedown="show('b23', 23, block)"></th>
+                    <th id="b24"; onmousedown="show('b24', 24, block)"></th>
+                    <th id="b25"; onmousedown="show('b25', 25, block)"></th>
+                    <th id="b26"; onmousedown="show('b26', 26, block)"></th>
+                    <th id="b27"; onmousedown="show('b27', 27, block)"></th>
+                    <th id="b28"; onmousedown="show('b28', 28, block)"></th>
+                    <th id="b29"; onmousedown="show('b29', 29, block)"></th>
+                </tr>
+                <!--第四行-->
+                <tr>
+                    <th id="b30"; onmousedown="show('b30', 30, block)"></th>
+                    <th id="b31"; onmousedown="show('b31', 31, block)"></th>
+                    <th id="b32"; onmousedown="show('b32', 32, block)"></th>
+                    <th id="b33"; onmousedown="show('b33', 33, block)"></th>
+                    <th id="b34"; onmousedown="show('b34', 34, block)"></th>
+                    <th id="b35"; onmousedown="show('b35', 35, block)"></th>
+                    <th id="b36"; onmousedown="show('b36', 36, block)"></th>
+                    <th id="b37"; onmousedown="show('b37', 37, block)"></th>
+                    <th id="b38"; onmousedown="show('b38', 38, block)"></th>
+                    <th id="b39"; onmousedown="show('b39', 39, block)"></th>
+                </tr>
+                <!--第五行-->
+                <tr>
+                    <th id="b40"; onmousedown="show('b40', 40, block)"></th>
+                    <th id="b41"; onmousedown="show('b41', 41, block)"></th>
+                    <th id="b42"; onmousedown="show('b42', 42, block)"></th>
+                    <th id="b43"; onmousedown="show('b43', 43, block)"></th>
+                    <th id="b44"; onmousedown="show('b44', 44, block)"></th>
+                    <th id="b45"; onmousedown="show('b45', 45, block)"></th>
+                    <th id="b46"; onmousedown="show('b46', 46, block)"></th>
+                    <th id="b47"; onmousedown="show('b47', 47, block)"></th>
+                    <th id="b48"; onmousedown="show('b48', 48, block)"></th>
+                    <th id="b49"; onmousedown="show('b49', 49, block)"></th>
+                </tr>
+                <!--第六行-->
+                <tr>
+                    <th id="b50"; onmousedown="show('b50', 50, block)"></th>
+                    <th id="b51"; onmousedown="show('b51', 51, block)"></th>
+                    <th id="b52"; onmousedown="show('b52', 52, block)"></th>
+                    <th id="b53"; onmousedown="show('b53', 53, block)"></th>
+                    <th id="b54"; onmousedown="show('b54', 54, block)"></th>
+                    <th id="b55"; onmousedown="show('b55', 55, block)"></th>
+                    <th id="b56"; onmousedown="show('b56', 56, block)"></th>
+                    <th id="b57"; onmousedown="show('b57', 57, block)"></th>
+                    <th id="b58"; onmousedown="show('b58', 58, block)"></th>
+                    <th id="b59"; onmousedown="show('b59', 59, block)"></th>
+                </tr>
+                <!--第七行-->
+                <tr>
+                    <th id="b60"; onmousedown="show('b60', 60, block)"></th>
+                    <th id="b61"; onmousedown="show('b61', 61, block)"></th>
+                    <th id="b62"; onmousedown="show('b62', 62, block)"></th>
+                    <th id="b63"; onmousedown="show('b63', 63, block)"></th>
+                    <th id="b64"; onmousedown="show('b64', 64, block)"></th>
+                    <th id="b65"; onmousedown="show('b65', 65, block)"></th>
+                    <th id="b66"; onmousedown="show('b66', 66, block)"></th>
+                    <th id="b67"; onmousedown="show('b67', 67, block)"></th>
+                    <th id="b68"; onmousedown="show('b68', 68, block)"></th>
+                    <th id="b69"; onmousedown="show('b69', 69, block)"></th>
+                </tr>
+                <!--第八行-->
+                <tr>
+                    <th id="b70"; onmousedown="show('b70', 70, block)"></th>
+                    <th id="b71"; onmousedown="show('b71', 71, block)"></th>
+                    <th id="b72"; onmousedown="show('b72', 72, block)"></th>
+                    <th id="b73"; onmousedown="show('b73', 73, block)"></th>
+                    <th id="b74"; onmousedown="show('b74', 74, block)"></th>
+                    <th id="b75"; onmousedown="show('b75', 75, block)"></th>
+                    <th id="b76"; onmousedown="show('b76', 76, block)"></th>
+                    <th id="b77"; onmousedown="show('b77', 77, block)"></th>
+                    <th id="b78"; onmousedown="show('b78', 78, block)"></th>
+                    <th id="b79"; onmousedown="show('b79', 79, block)"></th>
+                </tr>
+                <!--第九行-->
+                <tr>
+                    <th id="b80"; onmousedown="show('b80', 80, block)"></th>
+                    <th id="b81"; onmousedown="show('b81', 81, block)"></th>
+                    <th id="b82"; onmousedown="show('b82', 82, block)"></th>
+                    <th id="b83"; onmousedown="show('b83', 83, block)"></th>
+                    <th id="b84"; onmousedown="show('b84', 84, block)"></th>
+                    <th id="b85"; onmousedown="show('b85', 85, block)"></th>
+                    <th id="b86"; onmousedown="show('b86', 86, block)"></th>
+                    <th id="b87"; onmousedown="show('b87', 87, block)"></th>
+                    <th id="b88"; onmousedown="show('b88', 88, block)"></th>
+                    <th id="b89"; onmousedown="show('b89', 89, block)"></th>
+                </tr>
+                <!--第十行-->
+                <tr>
+                    <th id="b90"; onmousedown="show('b90', 90, block)"></th>
+                    <th id="b91"; onmousedown="show('b91', 91, block)"></th>
+                    <th id="b92"; onmousedown="show('b92', 92, block)"></th>
+                    <th id="b93"; onmousedown="show('b93', 93, block)"></th>
+                    <th id="b94"; onmousedown="show('b94', 94, block)"></th>
+                    <th id="b95"; onmousedown="show('b95', 95, block)"></th>
+                    <th id="b96"; onmousedown="show('b96', 96, block)"></th>
+                    <th id="b97"; onmousedown="show('b97', 97, block)"></th>
+                    <th id="b98"; onmousedown="show('b98', 98, block)"></th>
+                    <th id="b99"; onmousedown="show('b99', 99, block)"></th>
+                </tr>
+            </table>
+            <p style="margin:auto; text-align: center;">标注地雷时，请在按下Alt键时单击鼠标;  可通过刷新页面开始新的游戏</p>
+        </body>
+</html>

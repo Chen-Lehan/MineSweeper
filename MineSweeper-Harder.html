@@ -1,0 +1,847 @@
+<html>
+	<head>
+		<title>MineSweeper</title>  
+		<style type="text/css">
+			table
+			{
+				border-collapse:collapse;
+				margin:auto;
+			}
+			th
+			{
+				height:35px;
+				width:35px;
+			}
+			table, td, th
+			{
+				border:2px solid White;
+				background-color: Whitesmoke;
+			}
+
+			#header {
+				background-color:Black;
+				color:White;
+				text-align:center;
+				margin:auto;
+				padding:5px;
+				width:50%;
+			}
+		</style> 
+	</head>
+
+	<script>
+	
+	var block = new String();
+	var SafeZone = new Array();
+	var SafeZoneBorder = new Array();
+	var Status = new String();
+	var MineLeft = 99;
+	
+	for(var i = 0; i < 480; i++){
+		block[i] = "0";
+		Status[i] = "0";
+	}
+
+	var Mine = new Array();
+	for(var i = 0;; i++){
+		if(Mine.length < 99){
+			generateRandom(480, Mine);
+		}else{
+			break;
+		}
+	}
+
+	console.log(Mine);
+
+	for(var i = 0; i < 99; i++){
+		block[Mine[i]] ="!";
+	}
+
+	for(var i = 0; i < 480; i++){
+		if(block[i] == "!" || block[i] == NaN){
+			switch(i % 30){
+				case 0 :
+					if(block[i+1] !== "!"){
+						block[i+1]++;
+					}
+					break;
+				case 29 :
+					if(block[i-1] !== "!"){
+						block[i-1]++;
+					}
+					break;
+				default :
+					if(block[i+1] !== "!"){
+						block[i+1]++;
+					}
+					if(block[i-1] !== "!"){
+						block[i-1]++;
+					}
+			}
+			
+			switch(i / 30){
+				case 0 :
+					if(block[i+30] !== "!"){
+						block[i+30]++;
+					}
+					break;
+				case 15 :
+					if(block[i-30] !== "!"){
+						block[i-30]++;
+					}
+					break;
+				default :
+					if(block[i+30] !== "!"){
+						block[i+30]++;
+					}
+					if(block[i-30] !== "!"){
+						block[i-30]++;
+					}
+			}
+			
+			if(i / 30 !== 0 && i % 30 !== 0){
+				if(block[i-31] !== "!"){
+					block[i-31]++;
+				}
+			}
+
+			if(i / 30 !== 15 && i % 30 !== 0){
+				if(block[i+29] !== "!"){
+					block[i+29]++;
+				}
+			}
+
+			if(i / 30 !== 0 && i % 30 !== 29){
+				if(block[i-29] !== "!"){
+					block[i-29]++;
+				}
+			}
+
+			if(i / 30 !== 15 && i % 30 !== 29){
+				if(block[i+31] !== "!"){
+					block[i+31]++;
+				}
+			}
+			
+		}
+	}
+
+	//插入随机数的函数
+	function generateRandom(count, array){
+		var rand = Math.floor(Math.random() * count);
+		for(var i = 0; i < array.length; i++){
+			if(array[i] == rand){
+				return false;
+			}
+		}
+		array.push(rand);
+	}
+
+	//显示地雷的函数
+	function show(id, num, array, AltEnable){
+		document.getElementById(id).style.fontSize = "20";
+		if(event.altKey == 1 && AltEnable !== false){
+			if(Status[num] == "0"){
+				document.getElementById(id).innerHTML = "*";
+				document.getElementById(id).style.backgroundColor = "Pink";
+				document.getElementById(id).style.color = "Red";
+				Status[num] = "-1";
+				MineLeft--;
+			}
+			else if(Status[num] == "-1"){
+				document.getElementById(id).innerHTML = " ";
+				document.getElementById(id).style.backgroundColor = "Whitesmoke";
+				Status[num] = "0";
+				MineLeft++;
+			}
+			else{
+				var marked = 0;
+				for(var i = 0; i < 480; i++){
+					if(joined(i,num) == true){
+						if(Status[i] == "-1"){
+							marked ++;
+						}
+					}
+				}
+				if(marked == array[num]){
+					for(var i = 0; i < 480; i++){
+						if(joined(i,num) == true){
+							if(Status[i] !== "-1"){
+								show(("b"+ i), i, array, false);
+							}
+						}
+					}
+				}
+			}
+		}
+		else{
+			if(Status[num] == "-1"){
+				MineLeft++;
+			}
+
+			if(array[num] == "!"){
+				document.getElementById(id).innerHTML = array[num];
+				document.getElementById(id).style.color = "Red";
+				document.getElementById(id).style.backgroundColor = "Pink";
+				document.getElementById(id).style.fontSize = "22";
+				//window.alert("BOOM!");
+				Status[num] = "0";
+			}
+			else if (array[num] == 0) {
+				document.getElementById("b"+ num).style.color = "white";
+				SafeZone.push(num);
+				for(var i = 0; i < 480; i++){
+					if(i < SafeZone.length){
+						for(var j = 0; j < 480; j++){
+							if(array[j] == 0 && joined(j, SafeZone[i]) && SafeZone.indexOf(j) == -1){
+								SafeZone.push(j);
+							}
+						}
+					}
+				}
+				for(var i = 0; i < SafeZone.length; i++){
+						for(var j = 0; j < 480; j++){
+							if(joined(j, SafeZone[i]) == true && SafeZone.indexOf(j) == -1){
+								SafeZoneBorder.push(j);
+							}
+						}
+				}
+				for(var i = 0; i < SafeZone.length; i++){
+					document.getElementById("b"+ SafeZone[i]).style.backgroundColor = "White";
+					document.getElementById("b"+ SafeZone[i]).innerHTML = " ";
+					Status[SafeZone[i]] = "1";
+				}
+			
+				for(var i = 0; i < SafeZoneBorder.length; i++){
+					switch(array[SafeZoneBorder[i]]){
+						case 1:
+							document.getElementById("b"+ SafeZoneBorder[i]).style.color = "DodgerBlue";
+							break;
+					
+						case 2:
+							document.getElementById("b"+ SafeZoneBorder[i]).style.color = "Green";
+							break;
+				
+						case 3:
+							document.getElementById("b"+ SafeZoneBorder[i]).style.color = "Crimson";
+							break;
+					
+						case 4:
+							document.getElementById("b"+ SafeZoneBorder[i]).style.color = "DarkBlue";
+							break;
+
+						case 5:
+							document.getElementById("b"+ SafeZoneBorder[i]).style.color = "Brown";
+							break;
+
+						case 6:
+							document.getElementById("b"+ SafeZoneBorder[i]).style.color = "Cyan";
+							break;
+					
+						case 7:
+							document.getElementById("b"+ SafeZoneBorder[i]).style.color = "Indigo";
+							break;
+						
+						case 8:
+							document.getElementById("b"+ SafeZoneBorder[i]).style.color = "Black";
+							break;
+					}
+					document.getElementById("b"+ SafeZoneBorder[i]).innerHTML = array[SafeZoneBorder[i]];
+					document.getElementById("b"+ SafeZoneBorder[i]).style.fontSize = "20";
+					document.getElementById("b"+ SafeZoneBorder[i]).style.backgroundColor = "LightGray";
+					Status[SafeZoneBorder[i]] = "1";
+				}
+			}
+			else{
+				document.getElementById(id).innerHTML = array[num];
+				document.getElementById(id).style.backgroundColor = "LightGray	";
+				switch(array[num]){
+					case 1:
+						document.getElementById(id).style.color = "DodgerBlue";
+						break;
+
+					case 2:
+						document.getElementById(id).style.color = "Green";
+						break;
+					
+					case 3:
+						document.getElementById(id).style.color = "Crimson";
+						break;
+						
+					case 4:
+						document.getElementById(id).style.color = "DarkBlue";
+						break;
+
+					case 5:
+						document.getElementById(id).style.color = "Brown";
+						break;
+
+					case 6:
+						document.getElementById(id).style.color = "Cyan";
+						break;
+					
+					case 7:
+						document.getElementById(id).style.color = "Indigo";
+						break;
+						
+					case 8:
+						document.getElementById(id).style.color = "Black";
+						break;
+				}
+				Status[num] = "1";
+			}
+		}
+		document.getElementById("MineLeft").innerHTML ="There are " + MineLeft + " mines left";
+	}
+
+	function joined(a,b){
+		if(a == b)
+			return false;
+		if(Math.abs((a%30)-(b%30)) < 2 && Math.abs(a-b) < 32){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+
+	</script>
+		<body>
+			<div id="header">
+				<h1>MineSweeper</h1>
+			</div>
+			<table>
+				<!--第一行-->
+				<tr>
+					<th id="b0"; onmousedown="show('b0', 0, block)"></th>
+					<th id="b1"; onmousedown="show('b1', 1, block)"></th>
+					<th id="b2"; onmousedown="show('b2', 2, block)"></th>
+					<th id="b3"; onmousedown="show('b3', 3, block)"></th>
+					<th id="b4"; onmousedown="show('b4', 4, block)"></th>
+					<th id="b5"; onmousedown="show('b5', 5, block)"></th>
+					<th id="b6"; onmousedown="show('b6', 6, block)"></th>
+					<th id="b7"; onmousedown="show('b7', 7, block)"></th>
+					<th id="b8"; onmousedown="show('b8', 8, block)"></th>
+					<th id="b9"; onmousedown="show('b9', 9, block)"></th>
+					<th id="b10"; onmousedown="show('b10', 10, block)"></th>
+					<th id="b11"; onmousedown="show('b11', 11, block)"></th>
+					<th id="b12"; onmousedown="show('b12', 12, block)"></th>
+					<th id="b13"; onmousedown="show('b13', 13, block)"></th>
+					<th id="b14"; onmousedown="show('b14', 14, block)"></th>
+					<th id="b15"; onmousedown="show('b15', 15, block)"></th>
+					<th id="b16"; onmousedown="show('b16', 16, block)"></th>
+					<th id="b17"; onmousedown="show('b17', 17, block)"></th>
+					<th id="b18"; onmousedown="show('b18', 18, block)"></th>
+					<th id="b19"; onmousedown="show('b19', 19, block)"></th>
+					<th id="b20"; onmousedown="show('b20', 20, block)"></th>
+					<th id="b21"; onmousedown="show('b21', 21, block)"></th>
+					<th id="b22"; onmousedown="show('b22', 22, block)"></th>
+					<th id="b23"; onmousedown="show('b23', 23, block)"></th>
+					<th id="b24"; onmousedown="show('b24', 24, block)"></th>
+					<th id="b25"; onmousedown="show('b25', 25, block)"></th>
+					<th id="b26"; onmousedown="show('b26', 26, block)"></th>
+					<th id="b27"; onmousedown="show('b27', 27, block)"></th>
+					<th id="b28"; onmousedown="show('b28', 28, block)"></th>
+					<th id="b29"; onmousedown="show('b29', 29, block)"></th>
+				<!--第二行-->
+				<tr>
+					<th id="b30"; onmousedown="show('b30', 30, block)"></th>
+					<th id="b31"; onmousedown="show('b31', 31, block)"></th>
+					<th id="b32"; onmousedown="show('b32', 32, block)"></th>
+					<th id="b33"; onmousedown="show('b33', 33, block)"></th>
+					<th id="b34"; onmousedown="show('b34', 34, block)"></th>
+					<th id="b35"; onmousedown="show('b35', 35, block)"></th>
+					<th id="b36"; onmousedown="show('b36', 36, block)"></th>
+					<th id="b37"; onmousedown="show('b37', 37, block)"></th>
+					<th id="b38"; onmousedown="show('b38', 38, block)"></th>
+					<th id="b39"; onmousedown="show('b39', 39, block)"></th>
+					<th id="b40"; onmousedown="show('b40', 40, block)"></th>
+					<th id="b41"; onmousedown="show('b41', 41, block)"></th>
+					<th id="b42"; onmousedown="show('b42', 42, block)"></th>
+					<th id="b43"; onmousedown="show('b43', 43, block)"></th>
+					<th id="b44"; onmousedown="show('b44', 44, block)"></th>
+					<th id="b45"; onmousedown="show('b45', 45, block)"></th>
+					<th id="b46"; onmousedown="show('b46', 46, block)"></th>
+					<th id="b47"; onmousedown="show('b47', 47, block)"></th>
+					<th id="b48"; onmousedown="show('b48', 48, block)"></th>
+					<th id="b49"; onmousedown="show('b49', 49, block)"></th>
+					<th id="b50"; onmousedown="show('b50', 50, block)"></th>
+					<th id="b51"; onmousedown="show('b51', 51, block)"></th>
+					<th id="b52"; onmousedown="show('b52', 52, block)"></th>
+					<th id="b53"; onmousedown="show('b53', 53, block)"></th>
+					<th id="b54"; onmousedown="show('b54', 54, block)"></th>
+					<th id="b55"; onmousedown="show('b55', 55, block)"></th>
+					<th id="b56"; onmousedown="show('b56', 56, block)"></th>
+					<th id="b57"; onmousedown="show('b57', 57, block)"></th>
+					<th id="b58"; onmousedown="show('b58', 58, block)"></th>
+					<th id="b59"; onmousedown="show('b59', 59, block)"></th>
+				</tr>
+				<!--第三行-->
+				<tr>
+					<th id="b60"; onmousedown="show('b60', 60, block)"></th>
+					<th id="b61"; onmousedown="show('b61', 61, block)"></th>
+					<th id="b62"; onmousedown="show('b62', 62, block)"></th>
+					<th id="b63"; onmousedown="show('b63', 63, block)"></th>
+					<th id="b64"; onmousedown="show('b64', 64, block)"></th>
+					<th id="b65"; onmousedown="show('b65', 65, block)"></th>
+					<th id="b66"; onmousedown="show('b66', 66, block)"></th>
+					<th id="b67"; onmousedown="show('b67', 67, block)"></th>
+					<th id="b68"; onmousedown="show('b68', 68, block)"></th>
+					<th id="b69"; onmousedown="show('b69', 69, block)"></th>
+					<th id="b70"; onmousedown="show('b70', 70, block)"></th>
+					<th id="b71"; onmousedown="show('b71', 71, block)"></th>
+					<th id="b72"; onmousedown="show('b72', 72, block)"></th>
+					<th id="b73"; onmousedown="show('b73', 73, block)"></th>
+					<th id="b74"; onmousedown="show('b74', 74, block)"></th>
+					<th id="b75"; onmousedown="show('b75', 75, block)"></th>
+					<th id="b76"; onmousedown="show('b76', 76, block)"></th>
+					<th id="b77"; onmousedown="show('b77', 77, block)"></th>
+					<th id="b78"; onmousedown="show('b78', 78, block)"></th>
+					<th id="b79"; onmousedown="show('b79', 79, block)"></th>
+					<th id="b80"; onmousedown="show('b80', 80, block)"></th>
+					<th id="b81"; onmousedown="show('b81', 81, block)"></th>
+					<th id="b82"; onmousedown="show('b82', 82, block)"></th>
+					<th id="b83"; onmousedown="show('b83', 83, block)"></th>
+					<th id="b84"; onmousedown="show('b84', 84, block)"></th>
+					<th id="b85"; onmousedown="show('b85', 85, block)"></th>
+					<th id="b86"; onmousedown="show('b86', 86, block)"></th>
+					<th id="b87"; onmousedown="show('b87', 87, block)"></th>
+					<th id="b88"; onmousedown="show('b88', 88, block)"></th>
+					<th id="b89"; onmousedown="show('b89', 89, block)"></th>
+				</tr>
+				<!--第四行-->
+				<tr>
+					<th id="b90"; onmousedown="show('b90', 90, block)"></th>
+					<th id="b91"; onmousedown="show('b91', 91, block)"></th>
+					<th id="b92"; onmousedown="show('b92', 92, block)"></th>
+					<th id="b93"; onmousedown="show('b93', 93, block)"></th>
+					<th id="b94"; onmousedown="show('b94', 94, block)"></th>
+					<th id="b95"; onmousedown="show('b95', 95, block)"></th>
+					<th id="b96"; onmousedown="show('b96', 96, block)"></th>
+					<th id="b97"; onmousedown="show('b97', 97, block)"></th>
+					<th id="b98"; onmousedown="show('b98', 98, block)"></th>
+					<th id="b99"; onmousedown="show('b99', 99, block)"></th>
+					<th id="b100"; onmousedown="show('b100', 100, block)"></th>
+					<th id="b101"; onmousedown="show('b101', 101, block)"></th>
+					<th id="b102"; onmousedown="show('b102', 102, block)"></th>
+					<th id="b103"; onmousedown="show('b103', 103, block)"></th>
+					<th id="b104"; onmousedown="show('b104', 104, block)"></th>
+					<th id="b105"; onmousedown="show('b105', 105, block)"></th>
+					<th id="b106"; onmousedown="show('b106', 106, block)"></th>
+					<th id="b107"; onmousedown="show('b107', 107, block)"></th>
+					<th id="b108"; onmousedown="show('b108', 108, block)"></th>
+					<th id="b109"; onmousedown="show('b109', 109, block)"></th>
+					<th id="b110"; onmousedown="show('b110', 110, block)"></th>
+					<th id="b111"; onmousedown="show('b111', 111, block)"></th>
+					<th id="b112"; onmousedown="show('b112', 112, block)"></th>
+					<th id="b113"; onmousedown="show('b113', 113, block)"></th>
+					<th id="b114"; onmousedown="show('b114', 114, block)"></th>
+					<th id="b115"; onmousedown="show('b115', 115, block)"></th>
+					<th id="b116"; onmousedown="show('b116', 116, block)"></th>
+					<th id="b117"; onmousedown="show('b117', 117, block)"></th>
+					<th id="b118"; onmousedown="show('b118', 118, block)"></th>
+					<th id="b119"; onmousedown="show('b119', 119, block)"></th>
+				</tr>
+				<!--第五行-->
+				<tr>
+					<th id="b120"; onmousedown="show('b120', 120, block)"></th>
+					<th id="b121"; onmousedown="show('b121', 121, block)"></th>
+					<th id="b122"; onmousedown="show('b122', 122, block)"></th>
+					<th id="b123"; onmousedown="show('b123', 123, block)"></th>
+					<th id="b124"; onmousedown="show('b124', 124, block)"></th>
+					<th id="b125"; onmousedown="show('b125', 125, block)"></th>
+					<th id="b126"; onmousedown="show('b126', 126, block)"></th>
+					<th id="b127"; onmousedown="show('b127', 127, block)"></th>
+					<th id="b128"; onmousedown="show('b128', 128, block)"></th>
+					<th id="b129"; onmousedown="show('b129', 129, block)"></th>
+					<th id="b130"; onmousedown="show('b130', 130, block)"></th>
+					<th id="b131"; onmousedown="show('b131', 131, block)"></th>
+					<th id="b132"; onmousedown="show('b132', 132, block)"></th>
+					<th id="b133"; onmousedown="show('b133', 133, block)"></th>
+					<th id="b134"; onmousedown="show('b134', 134, block)"></th>
+					<th id="b135"; onmousedown="show('b135', 135, block)"></th>
+					<th id="b136"; onmousedown="show('b136', 136, block)"></th>
+					<th id="b137"; onmousedown="show('b137', 137, block)"></th>
+					<th id="b138"; onmousedown="show('b138', 138, block)"></th>
+					<th id="b139"; onmousedown="show('b139', 139, block)"></th>
+					<th id="b140"; onmousedown="show('b140', 140, block)"></th>
+					<th id="b141"; onmousedown="show('b141', 141, block)"></th>
+					<th id="b142"; onmousedown="show('b142', 142, block)"></th>
+					<th id="b143"; onmousedown="show('b143', 143, block)"></th>
+					<th id="b144"; onmousedown="show('b144', 144, block)"></th>
+					<th id="b145"; onmousedown="show('b145', 145, block)"></th>
+					<th id="b146"; onmousedown="show('b146', 146, block)"></th>
+					<th id="b147"; onmousedown="show('b147', 147, block)"></th>
+					<th id="b148"; onmousedown="show('b148', 148, block)"></th>
+					<th id="b149"; onmousedown="show('b149', 149, block)"></th>
+				</tr>
+				<!--第六行-->
+				<tr>
+					<th id="b150"; onmousedown="show('b150', 150, block)"></th>
+					<th id="b151"; onmousedown="show('b151', 151, block)"></th>
+					<th id="b152"; onmousedown="show('b152', 152, block)"></th>
+					<th id="b153"; onmousedown="show('b153', 153, block)"></th>
+					<th id="b154"; onmousedown="show('b154', 154, block)"></th>
+					<th id="b155"; onmousedown="show('b155', 155, block)"></th>
+					<th id="b156"; onmousedown="show('b156', 156, block)"></th>
+					<th id="b157"; onmousedown="show('b157', 157, block)"></th>
+					<th id="b158"; onmousedown="show('b158', 158, block)"></th>
+					<th id="b159"; onmousedown="show('b159', 159, block)"></th>
+					<th id="b160"; onmousedown="show('b160', 160, block)"></th>
+					<th id="b161"; onmousedown="show('b161', 161, block)"></th>
+					<th id="b162"; onmousedown="show('b162', 162, block)"></th>
+					<th id="b163"; onmousedown="show('b163', 163, block)"></th>
+					<th id="b164"; onmousedown="show('b164', 164, block)"></th>
+					<th id="b165"; onmousedown="show('b165', 165, block)"></th>
+					<th id="b166"; onmousedown="show('b166', 166, block)"></th>
+					<th id="b167"; onmousedown="show('b167', 167, block)"></th>
+					<th id="b168"; onmousedown="show('b168', 168, block)"></th>
+					<th id="b169"; onmousedown="show('b169', 169, block)"></th>
+					<th id="b170"; onmousedown="show('b170', 170, block)"></th>
+					<th id="b171"; onmousedown="show('b171', 171, block)"></th>
+					<th id="b172"; onmousedown="show('b172', 172, block)"></th>
+					<th id="b173"; onmousedown="show('b173', 173, block)"></th>
+					<th id="b174"; onmousedown="show('b174', 174, block)"></th>
+					<th id="b175"; onmousedown="show('b175', 175, block)"></th>
+					<th id="b176"; onmousedown="show('b176', 176, block)"></th>
+					<th id="b177"; onmousedown="show('b177', 177, block)"></th>
+					<th id="b178"; onmousedown="show('b178', 178, block)"></th>
+					<th id="b179"; onmousedown="show('b179', 179, block)"></th>
+				</tr>
+				<!--第七行-->
+				<tr>
+					<th id="b180"; onmousedown="show('b180', 180, block)"></th>
+					<th id="b181"; onmousedown="show('b181', 181, block)"></th>
+					<th id="b182"; onmousedown="show('b182', 182, block)"></th>
+					<th id="b183"; onmousedown="show('b183', 183, block)"></th>
+					<th id="b184"; onmousedown="show('b184', 184, block)"></th>
+					<th id="b185"; onmousedown="show('b185', 185, block)"></th>
+					<th id="b186"; onmousedown="show('b186', 186, block)"></th>
+					<th id="b187"; onmousedown="show('b187', 187, block)"></th>
+					<th id="b188"; onmousedown="show('b188', 188, block)"></th>
+					<th id="b189"; onmousedown="show('b189', 189, block)"></th>
+					<th id="b190"; onmousedown="show('b190', 190, block)"></th>
+					<th id="b191"; onmousedown="show('b191', 191, block)"></th>
+					<th id="b192"; onmousedown="show('b192', 192, block)"></th>
+					<th id="b193"; onmousedown="show('b193', 193, block)"></th>
+					<th id="b194"; onmousedown="show('b194', 194, block)"></th>
+					<th id="b195"; onmousedown="show('b195', 195, block)"></th>
+					<th id="b196"; onmousedown="show('b196', 196, block)"></th>
+					<th id="b197"; onmousedown="show('b197', 197, block)"></th>
+					<th id="b198"; onmousedown="show('b198', 198, block)"></th>
+					<th id="b199"; onmousedown="show('b199', 199, block)"></th>
+					<th id="b200"; onmousedown="show('b200', 200, block)"></th>
+					<th id="b201"; onmousedown="show('b201', 201, block)"></th>
+					<th id="b202"; onmousedown="show('b202', 202, block)"></th>
+					<th id="b203"; onmousedown="show('b203', 203, block)"></th>
+					<th id="b204"; onmousedown="show('b204', 204, block)"></th>
+					<th id="b205"; onmousedown="show('b205', 205, block)"></th>
+					<th id="b206"; onmousedown="show('b206', 206, block)"></th>
+					<th id="b207"; onmousedown="show('b207', 207, block)"></th>
+					<th id="b208"; onmousedown="show('b208', 208, block)"></th>
+					<th id="b209"; onmousedown="show('b209', 209, block)"></th>
+				</tr>
+				<!--第八行-->
+				<tr>
+					<th id="b210"; onmousedown="show('b210', 210, block)"></th>
+					<th id="b211"; onmousedown="show('b211', 211, block)"></th>
+					<th id="b212"; onmousedown="show('b212', 212, block)"></th>
+					<th id="b213"; onmousedown="show('b213', 213, block)"></th>
+					<th id="b214"; onmousedown="show('b214', 214, block)"></th>
+					<th id="b215"; onmousedown="show('b215', 215, block)"></th>
+					<th id="b216"; onmousedown="show('b216', 216, block)"></th>
+					<th id="b217"; onmousedown="show('b217', 217, block)"></th>
+					<th id="b218"; onmousedown="show('b218', 218, block)"></th>
+					<th id="b219"; onmousedown="show('b219', 219, block)"></th>
+					<th id="b220"; onmousedown="show('b220', 220, block)"></th>
+					<th id="b221"; onmousedown="show('b221', 221, block)"></th>
+					<th id="b222"; onmousedown="show('b222', 222, block)"></th>
+					<th id="b223"; onmousedown="show('b223', 223, block)"></th>
+					<th id="b224"; onmousedown="show('b224', 224, block)"></th>
+					<th id="b225"; onmousedown="show('b225', 225, block)"></th>
+					<th id="b226"; onmousedown="show('b226', 226, block)"></th>
+					<th id="b227"; onmousedown="show('b227', 227, block)"></th>
+					<th id="b228"; onmousedown="show('b228', 228, block)"></th>
+					<th id="b229"; onmousedown="show('b229', 229, block)"></th>
+					<th id="b230"; onmousedown="show('b230', 230, block)"></th>
+					<th id="b231"; onmousedown="show('b231', 231, block)"></th>
+					<th id="b232"; onmousedown="show('b232', 232, block)"></th>
+					<th id="b233"; onmousedown="show('b233', 233, block)"></th>
+					<th id="b234"; onmousedown="show('b234', 234, block)"></th>
+					<th id="b235"; onmousedown="show('b235', 235, block)"></th>
+					<th id="b236"; onmousedown="show('b236', 236, block)"></th>
+					<th id="b237"; onmousedown="show('b237', 237, block)"></th>
+					<th id="b238"; onmousedown="show('b238', 238, block)"></th>
+					<th id="b239"; onmousedown="show('b239', 239, block)"></th>
+				</tr>
+				<!--第九行-->
+				<tr>
+					<th id="b240"; onmousedown="show('b240', 240, block)"></th>
+					<th id="b241"; onmousedown="show('b241', 241, block)"></th>
+					<th id="b242"; onmousedown="show('b242', 242, block)"></th>
+					<th id="b243"; onmousedown="show('b243', 243, block)"></th>
+					<th id="b244"; onmousedown="show('b244', 244, block)"></th>
+					<th id="b245"; onmousedown="show('b245', 245, block)"></th>
+					<th id="b246"; onmousedown="show('b246', 246, block)"></th>
+					<th id="b247"; onmousedown="show('b247', 247, block)"></th>
+					<th id="b248"; onmousedown="show('b248', 248, block)"></th>
+					<th id="b249"; onmousedown="show('b249', 249, block)"></th>
+					<th id="b250"; onmousedown="show('b250', 250, block)"></th>
+					<th id="b251"; onmousedown="show('b251', 251, block)"></th>
+					<th id="b252"; onmousedown="show('b252', 252, block)"></th>
+					<th id="b253"; onmousedown="show('b253', 253, block)"></th>
+					<th id="b254"; onmousedown="show('b254', 254, block)"></th>
+					<th id="b255"; onmousedown="show('b255', 255, block)"></th>
+					<th id="b256"; onmousedown="show('b256', 256, block)"></th>
+					<th id="b257"; onmousedown="show('b257', 257, block)"></th>
+					<th id="b258"; onmousedown="show('b258', 258, block)"></th>
+					<th id="b259"; onmousedown="show('b259', 259, block)"></th>
+					<th id="b260"; onmousedown="show('b260', 260, block)"></th>
+					<th id="b261"; onmousedown="show('b261', 261, block)"></th>
+					<th id="b262"; onmousedown="show('b262', 262, block)"></th>
+					<th id="b263"; onmousedown="show('b263', 263, block)"></th>
+					<th id="b264"; onmousedown="show('b264', 264, block)"></th>
+					<th id="b265"; onmousedown="show('b265', 265, block)"></th>
+					<th id="b266"; onmousedown="show('b266', 266, block)"></th>
+					<th id="b267"; onmousedown="show('b267', 267, block)"></th>
+					<th id="b268"; onmousedown="show('b268', 268, block)"></th>
+					<th id="b269"; onmousedown="show('b269', 269, block)"></th>
+				</tr>
+				<!--第十行-->
+				<tr>
+					<th id="b270"; onmousedown="show('b270', 270, block)"></th>
+					<th id="b271"; onmousedown="show('b271', 271, block)"></th>
+					<th id="b272"; onmousedown="show('b272', 272, block)"></th>
+					<th id="b273"; onmousedown="show('b273', 273, block)"></th>
+					<th id="b274"; onmousedown="show('b274', 274, block)"></th>
+					<th id="b275"; onmousedown="show('b275', 275, block)"></th>
+					<th id="b276"; onmousedown="show('b276', 276, block)"></th>
+					<th id="b277"; onmousedown="show('b277', 277, block)"></th>
+					<th id="b278"; onmousedown="show('b278', 278, block)"></th>
+					<th id="b279"; onmousedown="show('b279', 279, block)"></th>
+					<th id="b280"; onmousedown="show('b280', 280, block)"></th>
+					<th id="b281"; onmousedown="show('b281', 281, block)"></th>
+					<th id="b282"; onmousedown="show('b282', 282, block)"></th>
+					<th id="b283"; onmousedown="show('b283', 283, block)"></th>
+					<th id="b284"; onmousedown="show('b284', 284, block)"></th>
+					<th id="b285"; onmousedown="show('b285', 285, block)"></th>
+					<th id="b286"; onmousedown="show('b286', 286, block)"></th>
+					<th id="b287"; onmousedown="show('b287', 287, block)"></th>
+					<th id="b288"; onmousedown="show('b288', 288, block)"></th>
+					<th id="b289"; onmousedown="show('b289', 289, block)"></th>
+					<th id="b290"; onmousedown="show('b290', 290, block)"></th>
+					<th id="b291"; onmousedown="show('b291', 291, block)"></th>
+					<th id="b292"; onmousedown="show('b292', 292, block)"></th>
+					<th id="b293"; onmousedown="show('b293', 293, block)"></th>
+					<th id="b294"; onmousedown="show('b294', 294, block)"></th>
+					<th id="b295"; onmousedown="show('b295', 295, block)"></th>
+					<th id="b296"; onmousedown="show('b296', 296, block)"></th>
+					<th id="b297"; onmousedown="show('b297', 297, block)"></th>
+					<th id="b298"; onmousedown="show('b298', 298, block)"></th>
+					<th id="b299"; onmousedown="show('b299', 299, block)"></th>
+				</tr>
+				<!--第十一行-->
+				<tr>
+					<th id="b300"; onmousedown="show('b300', 300, block)"></th>
+					<th id="b301"; onmousedown="show('b301', 301, block)"></th>
+					<th id="b302"; onmousedown="show('b302', 302, block)"></th>
+					<th id="b303"; onmousedown="show('b303', 303, block)"></th>
+					<th id="b304"; onmousedown="show('b304', 304, block)"></th>
+					<th id="b305"; onmousedown="show('b305', 305, block)"></th>
+					<th id="b306"; onmousedown="show('b306', 306, block)"></th>
+					<th id="b307"; onmousedown="show('b307', 307, block)"></th>
+					<th id="b308"; onmousedown="show('b308', 308, block)"></th>
+					<th id="b309"; onmousedown="show('b309', 309, block)"></th>
+					<th id="b310"; onmousedown="show('b310', 310, block)"></th>
+					<th id="b311"; onmousedown="show('b311', 311, block)"></th>
+					<th id="b312"; onmousedown="show('b312', 312, block)"></th>
+					<th id="b313"; onmousedown="show('b313', 313, block)"></th>
+					<th id="b314"; onmousedown="show('b314', 314, block)"></th>
+					<th id="b315"; onmousedown="show('b315', 315, block)"></th>
+					<th id="b316"; onmousedown="show('b316', 316, block)"></th>
+					<th id="b317"; onmousedown="show('b317', 317, block)"></th>
+					<th id="b318"; onmousedown="show('b318', 318, block)"></th>
+					<th id="b319"; onmousedown="show('b319', 319, block)"></th>
+					<th id="b320"; onmousedown="show('b320', 320, block)"></th>
+					<th id="b321"; onmousedown="show('b321', 321, block)"></th>
+					<th id="b322"; onmousedown="show('b322', 322, block)"></th>
+					<th id="b323"; onmousedown="show('b323', 323, block)"></th>
+					<th id="b324"; onmousedown="show('b324', 324, block)"></th>
+					<th id="b325"; onmousedown="show('b325', 325, block)"></th>
+					<th id="b326"; onmousedown="show('b326', 326, block)"></th>
+					<th id="b327"; onmousedown="show('b327', 327, block)"></th>
+					<th id="b328"; onmousedown="show('b328', 328, block)"></th>
+					<th id="b329"; onmousedown="show('b329', 329, block)"></th>
+				</tr>
+				<!--第十二行-->
+				<tr>
+					<th id="b330"; onmousedown="show('b330', 330, block)"></th>
+					<th id="b331"; onmousedown="show('b331', 331, block)"></th>
+					<th id="b332"; onmousedown="show('b332', 332, block)"></th>
+					<th id="b333"; onmousedown="show('b333', 333, block)"></th>
+					<th id="b334"; onmousedown="show('b334', 334, block)"></th>
+					<th id="b335"; onmousedown="show('b335', 335, block)"></th>
+					<th id="b336"; onmousedown="show('b336', 336, block)"></th>
+					<th id="b337"; onmousedown="show('b337', 337, block)"></th>
+					<th id="b338"; onmousedown="show('b338', 338, block)"></th>
+					<th id="b339"; onmousedown="show('b339', 339, block)"></th>
+					<th id="b340"; onmousedown="show('b340', 340, block)"></th>
+					<th id="b341"; onmousedown="show('b341', 341, block)"></th>
+					<th id="b342"; onmousedown="show('b342', 342, block)"></th>
+					<th id="b343"; onmousedown="show('b343', 343, block)"></th>
+					<th id="b344"; onmousedown="show('b344', 344, block)"></th>
+					<th id="b345"; onmousedown="show('b345', 345, block)"></th>
+					<th id="b346"; onmousedown="show('b346', 346, block)"></th>
+					<th id="b347"; onmousedown="show('b347', 347, block)"></th>
+					<th id="b348"; onmousedown="show('b348', 348, block)"></th>
+					<th id="b349"; onmousedown="show('b349', 349, block)"></th>
+					<th id="b350"; onmousedown="show('b350', 350, block)"></th>
+					<th id="b351"; onmousedown="show('b351', 351, block)"></th>
+					<th id="b352"; onmousedown="show('b352', 352, block)"></th>
+					<th id="b353"; onmousedown="show('b353', 353, block)"></th>
+					<th id="b354"; onmousedown="show('b354', 354, block)"></th>
+					<th id="b355"; onmousedown="show('b355', 355, block)"></th>
+					<th id="b356"; onmousedown="show('b356', 356, block)"></th>
+					<th id="b357"; onmousedown="show('b357', 357, block)"></th>
+					<th id="b358"; onmousedown="show('b358', 358, block)"></th>
+					<th id="b359"; onmousedown="show('b359', 359, block)"></th>
+				</tr>
+				<!--第十三行-->
+				<tr>
+					<th id="b360"; onmousedown="show('b360', 360, block)"></th>
+					<th id="b361"; onmousedown="show('b361', 361, block)"></th>
+					<th id="b362"; onmousedown="show('b362', 362, block)"></th>
+					<th id="b363"; onmousedown="show('b363', 363, block)"></th>
+					<th id="b364"; onmousedown="show('b364', 364, block)"></th>
+					<th id="b365"; onmousedown="show('b365', 365, block)"></th>
+					<th id="b366"; onmousedown="show('b366', 366, block)"></th>
+					<th id="b367"; onmousedown="show('b367', 367, block)"></th>
+					<th id="b368"; onmousedown="show('b368', 368, block)"></th>
+					<th id="b369"; onmousedown="show('b369', 369, block)"></th>
+					<th id="b370"; onmousedown="show('b370', 370, block)"></th>
+					<th id="b371"; onmousedown="show('b371', 371, block)"></th>
+					<th id="b372"; onmousedown="show('b372', 372, block)"></th>
+					<th id="b373"; onmousedown="show('b373', 373, block)"></th>
+					<th id="b374"; onmousedown="show('b374', 374, block)"></th>
+					<th id="b375"; onmousedown="show('b375', 375, block)"></th>
+					<th id="b376"; onmousedown="show('b376', 376, block)"></th>
+					<th id="b377"; onmousedown="show('b377', 377, block)"></th>
+					<th id="b378"; onmousedown="show('b378', 378, block)"></th>
+					<th id="b379"; onmousedown="show('b379', 379, block)"></th>
+					<th id="b380"; onmousedown="show('b380', 380, block)"></th>
+					<th id="b381"; onmousedown="show('b381', 381, block)"></th>
+					<th id="b382"; onmousedown="show('b382', 382, block)"></th>
+					<th id="b383"; onmousedown="show('b383', 383, block)"></th>
+					<th id="b384"; onmousedown="show('b384', 384, block)"></th>
+					<th id="b385"; onmousedown="show('b385', 385, block)"></th>
+					<th id="b386"; onmousedown="show('b386', 386, block)"></th>
+					<th id="b387"; onmousedown="show('b387', 387, block)"></th>
+					<th id="b388"; onmousedown="show('b388', 388, block)"></th>
+					<th id="b389"; onmousedown="show('b389', 389, block)"></th>
+				</tr>
+				<!--第十四行-->
+				<tr>
+					<th id="b390"; onmousedown="show('b390', 390, block)"></th>
+					<th id="b391"; onmousedown="show('b391', 391, block)"></th>
+					<th id="b392"; onmousedown="show('b392', 392, block)"></th>
+					<th id="b393"; onmousedown="show('b393', 393, block)"></th>
+					<th id="b394"; onmousedown="show('b394', 394, block)"></th>
+					<th id="b395"; onmousedown="show('b395', 395, block)"></th>
+					<th id="b396"; onmousedown="show('b396', 396, block)"></th>
+					<th id="b397"; onmousedown="show('b397', 397, block)"></th>
+					<th id="b398"; onmousedown="show('b398', 398, block)"></th>
+					<th id="b399"; onmousedown="show('b399', 399, block)"></th>
+					<th id="b400"; onmousedown="show('b400', 400, block)"></th>
+					<th id="b401"; onmousedown="show('b401', 401, block)"></th>
+					<th id="b402"; onmousedown="show('b402', 402, block)"></th>
+					<th id="b403"; onmousedown="show('b403', 403, block)"></th>
+					<th id="b404"; onmousedown="show('b404', 404, block)"></th>
+					<th id="b405"; onmousedown="show('b405', 405, block)"></th>
+					<th id="b406"; onmousedown="show('b406', 406, block)"></th>
+					<th id="b407"; onmousedown="show('b407', 407, block)"></th>
+					<th id="b408"; onmousedown="show('b408', 408, block)"></th>
+					<th id="b409"; onmousedown="show('b409', 409, block)"></th>
+					<th id="b410"; onmousedown="show('b410', 410, block)"></th>
+					<th id="b411"; onmousedown="show('b411', 411, block)"></th>
+					<th id="b412"; onmousedown="show('b412', 412, block)"></th>
+					<th id="b413"; onmousedown="show('b413', 413, block)"></th>
+					<th id="b414"; onmousedown="show('b414', 414, block)"></th>
+					<th id="b415"; onmousedown="show('b415', 415, block)"></th>
+					<th id="b416"; onmousedown="show('b416', 416, block)"></th>
+					<th id="b417"; onmousedown="show('b417', 417, block)"></th>
+					<th id="b418"; onmousedown="show('b418', 418, block)"></th>
+					<th id="b419"; onmousedown="show('b419', 419, block)"></th>
+				</tr>
+				<!--第十五行-->
+				<tr>
+					<th id="b420"; onmousedown="show('b420', 420, block)"></th>
+					<th id="b421"; onmousedown="show('b421', 421, block)"></th>
+					<th id="b422"; onmousedown="show('b422', 422, block)"></th>
+					<th id="b423"; onmousedown="show('b423', 423, block)"></th>
+					<th id="b424"; onmousedown="show('b424', 424, block)"></th>
+					<th id="b425"; onmousedown="show('b425', 425, block)"></th>
+					<th id="b426"; onmousedown="show('b426', 426, block)"></th>
+					<th id="b427"; onmousedown="show('b427', 427, block)"></th>
+					<th id="b428"; onmousedown="show('b428', 428, block)"></th>
+					<th id="b429"; onmousedown="show('b429', 429, block)"></th>
+					<th id="b430"; onmousedown="show('b430', 430, block)"></th>
+					<th id="b431"; onmousedown="show('b431', 431, block)"></th>
+					<th id="b432"; onmousedown="show('b432', 432, block)"></th>
+					<th id="b433"; onmousedown="show('b433', 433, block)"></th>
+					<th id="b434"; onmousedown="show('b434', 434, block)"></th>
+					<th id="b435"; onmousedown="show('b435', 435, block)"></th>
+					<th id="b436"; onmousedown="show('b436', 436, block)"></th>
+					<th id="b437"; onmousedown="show('b437', 437, block)"></th>
+					<th id="b438"; onmousedown="show('b438', 438, block)"></th>
+					<th id="b439"; onmousedown="show('b439', 439, block)"></th>
+					<th id="b440"; onmousedown="show('b440', 440, block)"></th>
+					<th id="b441"; onmousedown="show('b441', 441, block)"></th>
+					<th id="b442"; onmousedown="show('b442', 442, block)"></th>
+					<th id="b443"; onmousedown="show('b443', 443, block)"></th>
+					<th id="b444"; onmousedown="show('b444', 444, block)"></th>
+					<th id="b445"; onmousedown="show('b445', 445, block)"></th>
+					<th id="b446"; onmousedown="show('b446', 446, block)"></th>
+					<th id="b447"; onmousedown="show('b447', 447, block)"></th>
+					<th id="b448"; onmousedown="show('b448', 448, block)"></th>
+					<th id="b449"; onmousedown="show('b449', 449, block)"></th>
+				</tr>
+				<!--第十六行-->
+				<tr>
+					<th id="b450"; onmousedown="show('b450', 450, block)"></th>
+					<th id="b451"; onmousedown="show('b451', 451, block)"></th>
+					<th id="b452"; onmousedown="show('b452', 452, block)"></th>
+					<th id="b453"; onmousedown="show('b453', 453, block)"></th>
+					<th id="b454"; onmousedown="show('b454', 454, block)"></th>
+					<th id="b455"; onmousedown="show('b455', 455, block)"></th>
+					<th id="b456"; onmousedown="show('b456', 456, block)"></th>
+					<th id="b457"; onmousedown="show('b457', 457, block)"></th>
+					<th id="b458"; onmousedown="show('b458', 458, block)"></th>
+					<th id="b459"; onmousedown="show('b459', 459, block)"></th>
+					<th id="b460"; onmousedown="show('b460', 460, block)"></th>
+					<th id="b461"; onmousedown="show('b461', 461, block)"></th>
+					<th id="b462"; onmousedown="show('b462', 462, block)"></th>
+					<th id="b463"; onmousedown="show('b463', 463, block)"></th>
+					<th id="b464"; onmousedown="show('b464', 464, block)"></th>
+					<th id="b465"; onmousedown="show('b465', 465, block)"></th>
+					<th id="b466"; onmousedown="show('b466', 466, block)"></th>
+					<th id="b467"; onmousedown="show('b467', 467, block)"></th>
+					<th id="b468"; onmousedown="show('b468', 468, block)"></th>
+					<th id="b469"; onmousedown="show('b469', 469, block)"></th>
+					<th id="b470"; onmousedown="show('b470', 470, block)"></th>
+					<th id="b471"; onmousedown="show('b471', 471, block)"></th>
+					<th id="b472"; onmousedown="show('b472', 472, block)"></th>
+					<th id="b473"; onmousedown="show('b473', 473, block)"></th>
+					<th id="b474"; onmousedown="show('b474', 474, block)"></th>
+					<th id="b475"; onmousedown="show('b475', 475, block)"></th>
+					<th id="b476"; onmousedown="show('b476', 476, block)"></th>
+					<th id="b477"; onmousedown="show('b477', 477, block)"></th>
+					<th id="b478"; onmousedown="show('b478', 478, block)"></th>
+					<th id="b479"; onmousedown="show('b479', 479, block)"></th>
+				</tr>
+				<tr>  
+					<td colspan="30"; id="MineLeft"; height="35px"; align="Middle"></td>
+				</tr> 
+			</table>
+			<p style="margin:auto; text-align: center;">标注地雷时，请在按下Alt键时单击鼠标;  可通过刷新页面开始新的游戏</p>
+		</body>
+</html>
